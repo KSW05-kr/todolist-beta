@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dark Todo & News</title>
+    <!-- 아이폰 홈 화면 로고 설정 (자신의 로고 파일 경로/URL로 수정하세요) -->
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #121212;
+            --accent-blue: #007AFF;
+            --accent-green: #34C759;
+            --accent-red: #FF3B30;
+            --text-color: #FFFFFF;
+            --sub-text: #8E8E93;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px 16px;
+            max-width: 500px;
+            margin: 0 auto;
+            touch-action: pan-y;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .app-title img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        /* 뉴스 섹션 */
+        .news-container {
+            background-color: var(--card-bg);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 20px;
+            border: 1px solid #1c1c1e;
+        }
+
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--sub-text);
+            margin-bottom: 8px;
+        }
+
+        .news-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .news-item {
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .news-item a {
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        /* 달력 섹션 */
+        .calendar-container {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            user-select: none;
+            border: 1px solid #1c1c1e;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+
+        .day-label {
+            color: var(--sub-text);
+            font-size: 0.8rem;
+            padding-bottom: 8px;
+        }
+
+        .date-cell {
+            height: 52px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 4px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        /* 오늘 날짜 파란색 원 */
+        .date-cell.today .date-num {
+            background-color: var(--accent-blue);
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .date-cell.selected {
+            border: 1px solid var(--accent-blue);
+        }
+
+        /* 상태 표시 영역 */
+        .status-indicator {
+            margin-top: 4px;
+            height: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 완료: 초록색 원 */
+        .dot-green {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+        }
+
+        /* 미완료: 빨간색 세모 */
+        .triangle-red {
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 7px solid var(--accent-red);
+        }
+
+        /* 투두리스트 섹션 */
+        .todo-container {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid #1c1c1e;
+        }
+
+        .todo-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .todo-input-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .todo-input-box input {
+            flex: 1;
+            background: #2c2c2e;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .todo-input-box button {
+            background: var(--accent-blue);
+            border: none;
+            color: #fff;
+            border-radius: 10px;
+            padding: 0 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .todo-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1c1c1e;
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .todo-item.completed span {
+            text-decoration: line-through;
+            color: var(--sub-text);
+        }
+
+        .todo-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .todo-left input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-blue);
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--accent-red);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* 추가 기능: 하루 달성률 프로그래스 바 */
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: #2c2c2e;
+            border-radius: 3px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-green);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="app-title">
+            <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+            <span>My Todo Calendar</span>
+        </div>
+    </header>
+
+    <!-- 뉴스 세션 (오전 9시 기준 자동 업데이트) -->
+    <section class="news-container">
+        <div class="news-header">
+            <span>📰 당일 주요 뉴스 (경제/금융)</span>
+            <span id="news-time">09:00 Update</span>
+        </div>
+        <ul class="news-list" id="news-list">
+            <li class="news-item">뉴스를 불러오는 중입니다...</li>
+        </ul>
+    </section>
+
+    <!-- 달력 섹션 (스와이프 탐색) -->
+    <section class="calendar-container" id="calendar-area">
+        <div class="calendar-header">
+            <span id="month-year-text">2026년 9월</span>
+            <span style="font-size: 0.8rem; color: var(--sub-text);">스와이프하여 이동 ↔</span>
+        </div>
+        <div class="calendar-grid">
+            <div class="day-label">일</div>
+            <div class="day-label">월</div>
+            <div class="day-label">화</div>
+            <div class="day-label">수</div>
+            <div class="day-label">목</div>
+            <div class="day-label">금</div>
+            <div class="day-label">토</div>
+        </div>
+        <div class="calendar-grid" id="calendar-days"></div>
+    </section>
+
+    <!-- 투두리스트 섹션 -->
+    <section class="todo-container">
+        <div class="todo-header">
+            <span id="selected-date-text">오늘의 할 일</span>
+            <span id="completion-rate" style="font-size:0.85rem; color:var(--sub-text);">0% 완료</span>
+        </div>
+        
+        <!-- 달성률 프로그래스 바 -->
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+
+        <div class="todo-input-box">
+            <input type="text" id="todo-input" placeholder="새로운 할 일을 입력하세요..." onkeypress="if(event.key==='Enter') addTodo()">
+            <button onclick="addTodo()">추가</button>
+        </div>
+
+        <ul class="todo-list" id="todo-list"></ul>
+    </section>
+
+    <script>
+        // --- 전역 변수 및 데이터 초기화 ---
+        let currentDate = new Date();
+        let selectedDateStr = formatDateKey(new Date());
+        
+        // 데이터 저장소 (localStorage 연동)
+        let todoData = JSON.parse(localStorage.getItem('my_todo_data')) || {};
+
+        // 2년 제한 범위 설정 (현재 월 기준 ±12개월)
+        const minDate = new Date();
+        minDate.setMonth(minDate.getMonth() - 12);
+        const maxDate = new Date();
+        maxDate.setMonth(maxDate.getMonth() + 12);
+
+        // --- 초기화 함수 ---
+        window.onload = function() {
+            checkRolloverTasks();
+            fetchDailyNews();
+            renderCalendar();
+            renderTodoList();
+            setupSwipe();
+        };
+
+        function formatDateKey(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        // --- 뉴스 불러오기 (구글 뉴스 RSS 활용) ---
+        function fetchDailyNews() {
+            const newsListEl = document.getElementById('news-list');
+            // 경제/금융 관련 RSS 피드
+            const rssUrl = encodeURIComponent('https://news.google.com/rss/search?q=경제+금융&hl=ko&gl=KR&ceid=KR:ko');
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`;
+
+            fetch(apiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        newsListEl.innerHTML = '';
+                        // 상위 3개 뉴스 항목 노출
+                        data.items.slice(0, 3).forEach(item => {
+                            const li = document.createElement('li');
+                            li.className = 'news-item';
+                            li.innerHTML = `<a href="${item.link}" target="_blank">• ${item.title}</a>`;
+                            newsListEl.appendChild(li);
+                        });
+                    }
+                })
+                .catch(() => {
+                    newsListEl.innerHTML = '<li class="news-item">뉴스를 불러올 수 없습니다.</li>';
+                });
+        }
+
+        // --- 어제 미완료 항목 이월 추천 알림 ---
+        function checkRolloverTasks() {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = formatDateKey(yesterday);
+            const todayStr = formatDateKey(new Date());
+
+            if (todoData[yesterdayStr]) {
+                const uncompleted = todoData[yesterdayStr].filter(item => !item.completed);
+                if (uncompleted.length > 0) {
+                    const confirmRollover = confirm(`어제(${yesterdayStr}) 마치지 못한 할 일이 ${uncompleted.length}개 있습니다. 오늘 목록으로 이월하시겠습니까?`);
+                    if (confirmRollover) {
+                        if (!todoData[todayStr]) todoData[todayStr] = [];
+                        uncompleted.forEach(task => {
+                            todoData[todayStr].push({ id: Date.now() + Math.random(), text: task.text, completed: false });
+                        });
+                        // 어제 미완료 항목 삭제 처리
+                        todoData[yesterdayStr] = todoData[yesterdayStr].filter(item => item.completed);
+                        saveData();
+                    }
+                }
+            }
+        }
+
+        // --- 달력 렌더링 ---
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            document.getElementById('month-year-text').innerText = `${year}년 ${month + 1}월`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+
+            const daysContainer = document.getElementById('calendar-days');
+            daysContainer.innerHTML = '';
+
+            // 빈 칸 채우기
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                daysContainer.appendChild(emptyCell);
+            }
+
+            const todayStr = formatDateKey(new Date());
+
+            // 날짜 그리기
+            for (let date = 1; date <= lastDate; date++) {
+                const cellDate = new Date(year, month, date);
+                const dateStr = formatDateKey(cellDate);
+
+                const cell = document.createElement('div');
+                cell.className = 'date-cell';
+                
+                if (dateStr === todayStr) cell.classList.add('today');
+                if (dateStr === selectedDateStr) cell.classList.add('selected');
+
+                const numSpan = document.createElement('span');
+                numSpan.className = 'date-num';
+                numSpan.innerText = date;
+                cell.appendChild(numSpan);
+
+                // 상태 표시 아이콘 (초록색 원 / 빨간색 세모)
+                const statusDiv = document.createElement('div');
+                statusDiv.className = 'status-indicator';
+
+                if (todoData[dateStr] && todoData[dateStr].length > 0) {
+                    const allCompleted = todoData[dateStr].every(t => t.completed);
+                    if (allCompleted) {
+                        const greenDot = document.createElement('div');
+                        greenDot.className = 'dot-green';
+                        statusDiv.appendChild(greenDot);
+                    } else {
+                        const redTriangle = document.createElement('div');
+                        redTriangle.className = 'triangle-red';
+                        statusDiv.appendChild(redTriangle);
+                    }
+                }
+
+                cell.appendChild(statusDiv);
+
+                cell.onclick = () => {
+                    selectedDateStr = dateStr;
+                    renderCalendar();
+                    renderTodoList();
+                };
+
+                daysContainer.appendChild(cell);
+            }
+        }
+
+        // --- 스와이프 기능 (좌우 스와이프로 월 이동) ---
+        function setupSwipe() {
+            const calendarArea = document.getElementById('calendar-area');
+            let startX = 0;
+
+            calendarArea.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+            });
+
+            calendarArea.addEventListener('touchend', e => {
+                const endX = e.changedTouches[0].clientX;
+                const diffX = startX - endX;
+
+                if (Math.abs(diffX) > 50) { // 최소 스와이프 거리
+                    if (diffX > 0) {
+                        // 다음달 이동
+                        const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+                        if (nextMonth <= maxDate) {
+                            currentDate = nextMonth;
+                            renderCalendar();
+                        }
+                    } else {
+                        // 이전달 이동
+                        const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+                        if (prevMonth >= minDate) {
+                            currentDate = prevMonth;
+                            renderCalendar();
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- 투두리스트 CRUD 및 렌더링 ---
+        function renderTodoList() {
+            document.getElementById('selected-date-text').innerText = `${selectedDateStr} 할 일`;
+            const listEl = document.getElementById('todo-list');
+            listEl.innerHTML = '';
+
+            const items = todoData[selectedDateStr] || [];
+
+            let completedCount = 0;
+            items.forEach(item => {
+                if (item.completed) completedCount++;
+
+                const li = document.createElement('li');
+                li.className = `todo-item ${item.completed ? 'completed' : ''}`;
+
+                li.innerHTML = `
+                    <div class="todo-left">
+                        <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleTodo(${item.id})">
+                        <span>${escapeHtml(item.text)}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTodo(${item.id})">삭제</button>
+                `;
+                listEl.appendChild(li);
+            });
+
+            // 달성률 업데이트
+            const rate = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
+            document.getElementById('completion-rate').innerText = `${rate}% 완료`;
+            document.getElementById('progress-fill').style.width = `${rate}%`;
+        }
+
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            if (!todoData[selectedDateStr]) todoData[selectedDateStr] = [];
+            
+            todoData[selectedDateStr].push({
+                id: Date.now(),
+                text: text,
+                completed: false
+            });
+
+            input.value = '';
+            saveData();
+            renderCalendar();
+            renderTodoList();
+        }
+
+        function toggleTodo(id) {
+            todoData[selectedDateStr] = todoData[selectedDateStr].map(item => {
+                if (item.id === id) item.completed = !item.completed;
+                return item;
+            });
+            saveData();
+            renderCalendar();
+            renderTodoList();
+        }
+
+        function deleteTodo(id) {
+            todoData[selectedDateStr] = todoData[selectedDateStr].filter(item => item.id !== id);
+            saveData();
+            renderCalendar();
+            renderTodoList();
+        }
+
+        function saveData() {
+            localStorage.setItem('my_todo_data', JSON.stringify(todoData));
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
